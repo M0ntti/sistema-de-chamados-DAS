@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.sistemas.chamados.dto.ClienteRequest; 
 import br.com.sistemas.chamados.dto.ClienteResponse;
-import br.com.sistemas.chamados.entity.Cliente;
 import br.com.sistemas.chamados.service.ClienteService; 
 import jakarta.validation.Valid;
 
