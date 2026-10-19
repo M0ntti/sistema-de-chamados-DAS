@@ -11,14 +11,17 @@ import br.com.sistemas.chamados.entity.Tecnico;
 import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException;
 import br.com.sistemas.chamados.exception.RegraNegocioException;
 import br.com.sistemas.chamados.repository.TecnicoRepository;
+import br.com.sistemas.chamados.repository.ChamadoRepository;
 
 @Service
 public class TecnicoService {
 
     private final TecnicoRepository repository;
+    private final ChamadoRepository chamadoRepository;
 
     public TecnicoService(TecnicoRepository repository) {
         this.repository = repository;
+        this.chamadoRepository = chamadoRepository;
     }
 
     @Transactional
@@ -54,7 +57,14 @@ public class TecnicoService {
 
     @Transactional
     public void excluir(Long id) {
-        repository.delete(buscarEntity(id));
+        Tecnico tecnico = buscarEntity(id);
+        long vinculados = chamadoRepository.countByTecnicoId(id);
+        if (vinculados > 0) {
+            throw new RegraNegocioException(
+                "Não é possível excluir o técnico " + id + ": existem " + vinculados
+                + " chamado(s) vinculado(s) a ele");
+        }
+        repository.delete(tecnico);
     }
 
     private Tecnico buscarEntity(Long id) {
