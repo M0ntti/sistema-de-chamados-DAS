@@ -43,6 +43,18 @@ public class ChamadoController {
         return service.atualizar(id, dto);
     }
 
+    @PatchMapping("/{id}/atribuir")
+    public ChamadoResponse atribuir(@PathVariable Long id,
+                                    @Valid @RequestBody AtribuirTecnicoRequest dto) {
+        return service.atribuirTecnico(id, dto);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ChamadoResponse alterarStatus(@PathVariable Long id,
+                                         @Valid @RequestBody AlterarStatusRequest dto) {
+        return service.alterarStatus(id, dto);
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);

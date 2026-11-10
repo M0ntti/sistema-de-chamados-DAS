@@ -10,7 +10,7 @@ import br.com.sistemas.chamados.entity.Cliente;
 import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException; 
 import br.com.sistemas.chamados.exception.RegraNegocioException; 
 import br.com.sistemas.chamados.repository.ClienteRepository;
-import br.com.sistemas.chamados.repository.ChamadoRepository
+import br.com.sistemas.chamados.repository.ChamadoRepository;
 
 @Service
 public class ClienteService {

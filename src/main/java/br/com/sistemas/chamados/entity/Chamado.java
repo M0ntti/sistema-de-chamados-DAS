@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import br.com.sistemas.chamados.enums.Prioridade;
 import br.com.sistemas.chamados.enums.StatusChamado;
+import br.com.sistemas.chamados.exception.ChamadoFechadoException;
+import br.com.sistemas.chamados.exception.TransicaoStatusInvalidaException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,7 +60,6 @@ public class Chamado {
 
     public Chamado() {}
 
-    /** REGRA: todo chamado nasce ABERTO e com dataAbertura preenchida automaticamente. */
     public Chamado(String titulo, String descricao, Prioridade prioridade,
                    Cliente cliente, Categoria categoria, Tecnico tecnico) {
         this.titulo = titulo;
@@ -71,6 +72,28 @@ public class Chamado {
         this.dataAbertura = LocalDateTime.now();
     }
 
+    public boolean estaFechado() {
+        return status == StatusChamado.FECHADO;
+    }
+
+    public void garantirNaoFechado() {
+        if (estaFechado()) {
+            throw new ChamadoFechadoException("Chamado " + id + " está FECHADO e não pode ser alterado");
+        }
+    }
+
+    public void alterarStatus(StatusChamado novoStatus) {
+        garantirNaoFechado();
+        if (!status.podeIrPara(novoStatus)) {
+            throw new TransicaoStatusInvalidaException(
+                "Transição de status inválida: " + status + " -> " + novoStatus);
+        }
+        this.status = novoStatus;
+        if (novoStatus == StatusChamado.FECHADO) {
+            this.dataFechamento = LocalDateTime.now();
+        }
+    }
+
     public Long getId() { return id; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
@@ -81,7 +104,6 @@ public class Chamado {
     public Prioridade getPrioridade() { return prioridade; }
     public void setPrioridade(Prioridade prioridade) { this.prioridade = prioridade; }
     public StatusChamado getStatus() { return status; }
-    public void setStatus(StatusChamado status) {this.status = status;}
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
     public Categoria getCategoria() { return categoria; }

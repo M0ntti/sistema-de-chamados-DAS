@@ -5,9 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.sistemas.chamados.dto.AlterarStatusRequest;
+import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
-import br.com.sistemas.chamados.entity.Categoria;
+import br.com.sistemas.chamados.entity.CategoriaRepository
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Cliente;
 import br.com.sistemas.chamados.entity.Tecnico;
@@ -58,12 +60,28 @@ public class ChamadoService {
     @Transactional
     public ChamadoResponse atualizar(Long id, ChamadoRequest dto) {
         Chamado chamado = buscarEntity(id);
+        chamado.garantirNaoFechado();
         chamado.setTitulo(dto.titulo());
         chamado.setDescricao(dto.descricao());
         chamado.setPrioridade(dto.prioridade());
         chamado.setCliente(buscarCliente(dto.clienteId()));
         chamado.setCategoria(buscarCategoria(dto.categoriaId()));
         chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse atribuirTecnico(Long id, AtribuirTecnicoRequest dto) {
+        Chamado chamado = buscarEntity(id);
+        chamado.garantirNaoFechado();
+        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse alterarStatus(Long id, AlterarStatusRequest dto) {
+        Chamado chamado = buscarEntity(id);
+        chamado.alterarStatus(dto.status());
         return ChamadoResponse.de(chamado);
     }
 
@@ -91,8 +109,8 @@ public class ChamadoService {
     }
 
     private Tecnico buscarTecnico(Long id) {
-    return tecnicoRepository.findById(id)
-        .orElseThrow(() -> new RecursoNaoEncontradoException(
-            "Técnico " + id + " não encontrado"));
+        return tecnicoRepository.findById(id)
+            .orElseThrow(() -> new RecursoNaoEncontradoException(
+                "Técnico " + id + " não encontrado"));
     }
 }
