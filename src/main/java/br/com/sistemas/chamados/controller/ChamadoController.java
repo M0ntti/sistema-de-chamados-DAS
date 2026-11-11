@@ -11,6 +11,16 @@ import br.com.sistemas.chamados.dto.ChamadoResponse;
 import br.com.sistemas.chamados.service.ChamadoService;
 import jakarta.validation.Valid;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+
+import br.com.sistemas.chamados.dto.AlterarStatusRequest;
+import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
+import br.com.sistemas.chamados.dto.PaginaResponse;
+import br.com.sistemas.chamados.enums.Prioridade;
+import br.com.sistemas.chamados.enums.StatusChamado;
+
 @RestController
 @RequestMapping("/chamados")
 public class ChamadoController {
@@ -28,8 +38,13 @@ public class ChamadoController {
     }
 
     @GetMapping
-    public List<ChamadoResponse> listar() {
-        return service.listar();
+    public PaginaResponse<ChamadoResponse> listar(
+            @RequestParam(required = false) StatusChamado status,
+            @RequestParam(required = false) Prioridade prioridade,
+            @RequestParam(required = false) Long clienteId,
+            @PageableDefault(size = 10, sort = "dataAbertura", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return service.listar(status, prioridade, clienteId, pageable);
     }
 
     @GetMapping("/{id}")
