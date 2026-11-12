@@ -37,7 +37,6 @@ public class ChamadoController {
         return ResponseEntity.created(URI.create("/chamados/" + criado.id())).body(criado);
     }
 
-    /** GET /chamados?status=&prioridade=&clienteId=&page=&size=&sort=campo,asc|desc */
     @GetMapping
     public PaginaResponse<ChamadoResponse> listar(
             @RequestParam(required = false) StatusChamado status,
