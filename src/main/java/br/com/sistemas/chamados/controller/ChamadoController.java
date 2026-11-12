@@ -3,23 +3,23 @@ package br.com.sistemas.chamados.controller;
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import br.com.sistemas.chamados.dto.ChamadoRequest;
-import br.com.sistemas.chamados.dto.ChamadoResponse;
-import br.com.sistemas.chamados.service.ChamadoService;
-import jakarta.validation.Valid;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import br.com.sistemas.chamados.dto.AlterarStatusRequest;
 import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
+import br.com.sistemas.chamados.dto.ChamadoDetalheResponse;
+import br.com.sistemas.chamados.dto.ChamadoRequest;
+import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.dto.PaginaResponse;
 import br.com.sistemas.chamados.enums.Prioridade;
 import br.com.sistemas.chamados.enums.StatusChamado;
+import br.com.sistemas.chamados.service.ChamadoService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/chamados")
@@ -37,6 +37,7 @@ public class ChamadoController {
         return ResponseEntity.created(URI.create("/chamados/" + criado.id())).body(criado);
     }
 
+    /** GET /chamados?status=&prioridade=&clienteId=&page=&size=&sort=campo,asc|desc */
     @GetMapping
     public PaginaResponse<ChamadoResponse> listar(
             @RequestParam(required = false) StatusChamado status,
@@ -48,8 +49,13 @@ public class ChamadoController {
     }
 
     @GetMapping("/{id}")
-    public ChamadoResponse buscar(@PathVariable Long id) {
+    public ChamadoDetalheResponse buscar(@PathVariable Long id) {
         return service.buscar(id);
+    }
+
+    @GetMapping("/{id}/historico")
+    public List<HistoricoStatusResponse> historico(@PathVariable Long id) {
+        return service.historico(id);
     }
 
     @PutMapping("/{id}")
@@ -69,7 +75,7 @@ public class ChamadoController {
                                          @Valid @RequestBody AlterarStatusRequest dto) {
         return service.alterarStatus(id, dto);
     }
-    
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);

@@ -1,5 +1,6 @@
 package br.com.sistemas.chamados.service;
 
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -11,12 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.sistemas.chamados.dto.AlterarStatusRequest;
 import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
+import br.com.sistemas.chamados.dto.ChamadoDetalheResponse;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.dto.PaginaResponse;
 import br.com.sistemas.chamados.entity.Categoria;
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Cliente;
+import br.com.sistemas.chamados.entity.HistoricoStatus;
 import br.com.sistemas.chamados.entity.Tecnico;
 import br.com.sistemas.chamados.enums.Prioridade;
 import br.com.sistemas.chamados.enums.StatusChamado;
@@ -26,6 +30,7 @@ import br.com.sistemas.chamados.repository.CategoriaRepository;
 import br.com.sistemas.chamados.repository.ChamadoRepository;
 import br.com.sistemas.chamados.repository.ChamadoSpecification;
 import br.com.sistemas.chamados.repository.ClienteRepository;
+import br.com.sistemas.chamados.repository.HistoricoStatusRepository;
 import br.com.sistemas.chamados.repository.TecnicoRepository;
 
 @Service
@@ -38,15 +43,18 @@ public class ChamadoService {
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
     private final TecnicoRepository tecnicoRepository;
+    private final HistoricoStatusRepository historicoRepository;
 
     public ChamadoService(ChamadoRepository repository,
                           ClienteRepository clienteRepository,
                           CategoriaRepository categoriaRepository,
-                          TecnicoRepository tecnicoRepository) {
+                          TecnicoRepository tecnicoRepository,
+                          HistoricoStatusRepository historicoRepository) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.categoriaRepository = categoriaRepository;
         this.tecnicoRepository = tecnicoRepository;
+        this.historicoRepository = historicoRepository;
     }
 
     @Transactional
@@ -78,8 +86,13 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public ChamadoResponse buscar(Long id) {
-        return ChamadoResponse.de(buscarEntity(id));
+    public ChamadoDetalheResponse buscar(Long id) {
+        return ChamadoDetalheResponse.de(buscarEntity(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoStatusResponse> historico(Long id) {
+        return buscarEntity(id).getHistorico().stream().map(HistoricoStatusResponse::de).toList();
     }
 
     @Transactional
@@ -106,7 +119,9 @@ public class ChamadoService {
     @Transactional
     public ChamadoResponse alterarStatus(Long id, AlterarStatusRequest dto) {
         Chamado chamado = buscarEntity(id);
+        StatusChamado anterior = chamado.getStatus();
         chamado.alterarStatus(dto.status());
+        historicoRepository.save(new HistoricoStatus(chamado, anterior, dto.status()));
         return ChamadoResponse.de(chamado);
     }
 

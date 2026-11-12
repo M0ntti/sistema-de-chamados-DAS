@@ -1,11 +1,14 @@
 package br.com.sistemas.chamados.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.com.sistemas.chamados.enums.Prioridade;
 import br.com.sistemas.chamados.enums.StatusChamado;
 import br.com.sistemas.chamados.exception.ChamadoFechadoException;
 import br.com.sistemas.chamados.exception.TransicaoStatusInvalidaException;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +19,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 @Entity
@@ -57,6 +62,14 @@ public class Chamado {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tecnico_id", nullable = false)
     private Tecnico tecnico;
+
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.REMOVE)
+    @OrderBy("dataCriacao ASC, id ASC")
+    private List<Comentario> comentarios = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.REMOVE)
+    @OrderBy("dataAlteracao ASC, id ASC")
+    private List<HistoricoStatus> historico = new ArrayList<>();
 
     public Chamado() {}
 
@@ -110,4 +123,6 @@ public class Chamado {
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Tecnico getTecnico() { return tecnico; }
     public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
+    public List<Comentario> getComentarios() { return comentarios; }
+    public List<HistoricoStatus> getHistorico() { return historico; }
 }
