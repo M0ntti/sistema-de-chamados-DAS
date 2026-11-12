@@ -1,9 +1,14 @@
 package br.com.sistemas.chamados.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import br.com.sistemas.chamados.enums.Prioridade;
 import br.com.sistemas.chamados.enums.StatusChamado;
+import br.com.sistemas.chamados.exception.ChamadoFechadoException;
+import br.com.sistemas.chamados.exception.TransicaoStatusInvalidaException;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +19,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 
 @Entity
@@ -56,9 +63,16 @@ public class Chamado {
     @JoinColumn(name = "tecnico_id", nullable = false)
     private Tecnico tecnico;
 
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.REMOVE)
+    @OrderBy("dataCriacao ASC, id ASC")
+    private List<Comentario> comentarios = new ArrayList<>();
+
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.REMOVE)
+    @OrderBy("dataAlteracao ASC, id ASC")
+    private List<HistoricoStatus> historico = new ArrayList<>();
+
     public Chamado() {}
 
-    /** REGRA: todo chamado nasce ABERTO e com dataAbertura preenchida automaticamente. */
     public Chamado(String titulo, String descricao, Prioridade prioridade,
                    Cliente cliente, Categoria categoria, Tecnico tecnico) {
         this.titulo = titulo;
@@ -71,6 +85,28 @@ public class Chamado {
         this.dataAbertura = LocalDateTime.now();
     }
 
+    public boolean estaFechado() {
+        return status == StatusChamado.FECHADO;
+    }
+
+    public void garantirNaoFechado() {
+        if (estaFechado()) {
+            throw new ChamadoFechadoException("Chamado " + id + " está FECHADO e não pode ser alterado");
+        }
+    }
+
+    public void alterarStatus(StatusChamado novoStatus) {
+        garantirNaoFechado();
+        if (!status.podeIrPara(novoStatus)) {
+            throw new TransicaoStatusInvalidaException(
+                "Transição de status inválida: " + status + " -> " + novoStatus);
+        }
+        this.status = novoStatus;
+        if (novoStatus == StatusChamado.FECHADO) {
+            this.dataFechamento = LocalDateTime.now();
+        }
+    }
+
     public Long getId() { return id; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
@@ -81,11 +117,12 @@ public class Chamado {
     public Prioridade getPrioridade() { return prioridade; }
     public void setPrioridade(Prioridade prioridade) { this.prioridade = prioridade; }
     public StatusChamado getStatus() { return status; }
-    public void setStatus(StatusChamado status) {this.status = status;}
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
     public Tecnico getTecnico() { return tecnico; }
     public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
+    public List<Comentario> getComentarios() { return comentarios; }
+    public List<HistoricoStatus> getHistorico() { return historico; }
 }

@@ -19,7 +19,7 @@ public class TecnicoService {
     private final TecnicoRepository repository;
     private final ChamadoRepository chamadoRepository;
 
-    public TecnicoService(TecnicoRepository repository) {
+    public TecnicoService(TecnicoRepository repository,  ChamadoRepository chamadoRepository) {
         this.repository = repository;
         this.chamadoRepository = chamadoRepository;
     }
